@@ -28,58 +28,58 @@ mongoose.connect(MONGODB_URI)
     console.error(err);
   });
 
-// *********************************** find by id
-// mongoose.connect(MONGODB_URI)
-//   .then(() => {
-//     const id = '000000000000000000000006';
+*********************************** find by id
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    const id = '000000000000000000000006';
     
-//     return Note.findById(id);
-//   })
-//   .then(results => console.log(results))
-//   .then(() => { 
-//     return mongoose.disconnect(); 
-//   })
-//   .catch(err => console.error(`ERROR: ${err.message}`));
+    return Note.findById(id);
+  })
+  .then(results => console.log(results))
+  .then(() => { 
+    return mongoose.disconnect(); 
+  })
+  .catch(err => console.error(`ERROR: ${err.message}`));
 
-//*****************************************create */
-// mongoose.connect(MONGODB_URI)
-//   .then(() => {
-//     const newItem = {
-//       title: 'My new news idea',
-//       content: 'sgskjhgjsgejsjhsghegs'
-//     };
+*****************************************create */
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    const newItem = {
+      title: 'My new news idea',
+      content: 'sgskjhgjsgejsjhsghegs'
+    };
 
-//     return Note.create(newItem);
-//   })
-//   .then(results => console.log(results))
-//   .then(() => {
-//     return mongoose.disconnect();
-//   })
-//   .catch(err => console.error(`ERROR: ${err.message}`));
+    return Note.create(newItem);
+  })
+  .then(results => console.log(results))
+  .then(() => {
+    return mongoose.disconnect();
+  })
+  .catch(err => console.error(`ERROR: ${err.message}`));
 
-// mongoose.connect(MONGODB_URI)
-//   .then(() => {
-//     const id = '000000000000000000000006';
-//     const UpdateItem = {
-//       title: '9 reasons Dogs are better than cats',
-//       content: 'It just did that is what I heard abnd it sounds pretty reasobable aye?',
-//     };
-//     return Note.findByIdAndUpdate(id, UpdateItem, { new: true, upsert:true });
-//   })
-//   .then(results => console.log(results))
-//   .then(() => {
-//     return mongoose.disconnect();
-//   })
-//   .catch(err => console.error(`ERROR: ${err.message}`));
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    const id = '000000000000000000000006';
+    const UpdateItem = {
+      title: '9 reasons Dogs are better than cats',
+      content: 'It just did that is what I heard abnd it sounds pretty reasobable aye?',
+    };
+    return Note.findByIdAndUpdate(id, UpdateItem, { new: true, upsert:true });
+  })
+  .then(results => console.log(results))
+  .then(() => {
+    return mongoose.disconnect();
+  })
+  .catch(err => console.error(`ERROR: ${err.message}`));
 
-// mongoose.connect(MONGODB_URI)
-//   .then(() => {
-//     const id = '5b73380d855d684f244679c9';
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    const id = '5b73380d855d684f244679c9';
   
-//     return Note.findByIdAndRemove(id);
-//   })
-//   .then(results => console.log(results))
-//   .then(() => {
-//     return mongoose.disconnect();
-//   })
-//   .catch(err => console.error(`ERROR: ${err.message}`));
+    return Note.findByIdAndRemove(id);
+  })
+  .then(results => console.log(results))
+  .then(() => {
+    return mongoose.disconnect();
+  })
+  .catch(err => console.error(`ERROR: ${err.message}`));
