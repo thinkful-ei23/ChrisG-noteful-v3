@@ -45,7 +45,7 @@ router.post('/', (req, res, next) => {
   };
 
   return Note.create(newItem)
-    .then(results => res.json(results))
+    .then(results => res.location(`${req.originalUrl}/${results.id}`).status(201).json(results))
     .catch(err => {
       console.error(`ERROR: ${err.message}`);
       res.json(err); 
@@ -62,7 +62,7 @@ router.put('/:id', (req, res, next) => {
     content: req.body.content,
   };
   return Note.findByIdAndUpdate(id, UpdateItem, { new: true, upsert: true })
-    .then(results => res.json(results))
+    .then(results => res.status(201).json(results))
     .catch(err => {
       console.error(`ERROR: ${err.message}`);
       res.json(err);
