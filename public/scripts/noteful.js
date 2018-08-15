@@ -111,6 +111,8 @@ const noteful = (function () {
    */
   function getNoteIdFromElement(item) {
     const id = $(item).closest('.js-note-element').data('id');
+    console.log($(item).closest('.js-note-element'))
+    console.log(item, id);
     return id;
   }
 
@@ -136,7 +138,7 @@ const noteful = (function () {
       event.preventDefault();
 
       const noteId = getNoteIdFromElement(event.currentTarget);
-
+      console.log(noteId);
       api.details(`/api/notes/${noteId}`)
         .then((response) => {
           store.currentNote = response;

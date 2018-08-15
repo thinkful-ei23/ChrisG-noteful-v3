@@ -28,7 +28,7 @@ mongoose.connect(MONGODB_URI)
     console.error(err);
   });
 
-*********************************** find by id
+//*********************************** find by id
 mongoose.connect(MONGODB_URI)
   .then(() => {
     const id = '000000000000000000000006';
@@ -41,7 +41,7 @@ mongoose.connect(MONGODB_URI)
   })
   .catch(err => console.error(`ERROR: ${err.message}`));
 
-*****************************************create */
+//*****************************************create */
 mongoose.connect(MONGODB_URI)
   .then(() => {
     const newItem = {
