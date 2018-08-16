@@ -4,7 +4,7 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 // use mongoose library
 const mongoose = require('mongoose');
-// get app from server.js
+// get app from server.js                              **********ASK ABOUT dot dot in ../server
 const app = require('../server');
 // get testURI
 const { TEST_MONGODB_URI } = require('../config');
