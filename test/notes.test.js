@@ -121,7 +121,7 @@ describe('hooks', function () {
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
-    it.only('should return empty array for invalid searches', function () {
+    it('should return empty array for invalid searches', function () {
       let res;
       let invalidId = 'ID';
       return chai.request(app).get(`/api/notes/${invalidId}`)
