@@ -2,6 +2,7 @@
 
 const express = require('express');
 const Note = require('../models/note');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ router.get('/', (req, res, next) => {
     titleFilter.title = { $regex: searchTerm, $options: 'i' };
     contentFilter.content = { $regex: searchTerm, $options: 'i' };
   }
-  return Note.find({ $or: [titleFilter, contentFilter] }).sort({ updatedAt: 'desc' })
+  Note.find({ $or: [titleFilter, contentFilter] }).sort({ updatedAt: 'desc' })
     .then(results => {
       res.json(results);
     })
@@ -28,9 +29,17 @@ router.get('/', (req, res, next) => {
 router.get('/:id', (req, res, next) => {
 
   const id = req.params.id;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
     
-  return Note.findById(id)
-    .then(results => res.json(results))
+  Note.findById(id)
+    .then(results => {
+      console.log(results);
+      res.json(results);
+    })
     .catch(err => {
       res.json(err);
     });
@@ -44,7 +53,13 @@ router.post('/', (req, res, next) => {
     content: req.body.content
   };
 
-  return Note.create(newItem)
+  if (!newItem.title) {
+    const err = new Error('Missing title in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  Note.create(newItem)
     .then(results => res.location(`${req.originalUrl}/${results.id}`).status(201).json(results))
     .catch(err => {
       console.error(`ERROR: ${err.message}`);
@@ -61,7 +76,13 @@ router.put('/:id', (req, res, next) => {
     title: req.body.title,
     content: req.body.content,
   };
-  return Note.findByIdAndUpdate(id, UpdateItem, { new: true, upsert: true })
+  if (!UpdateItem.title) {
+    const err = new Error('Missing title in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  Note.findByIdAndUpdate(id, UpdateItem, { new: true, upsert: true })
     .then(results => res.status(201).json(results))
     .catch(err => {
       console.error(`ERROR: ${err.message}`);
@@ -75,7 +96,7 @@ router.put('/:id', (req, res, next) => {
 router.delete('/:id', (req, res, next) => {
   const id = req.params.id;
 
-  return Note.findByIdAndRemove(id)
+  Note.findByIdAndRemove(id)
     .then(() => {
       res.status(204).end();
     })

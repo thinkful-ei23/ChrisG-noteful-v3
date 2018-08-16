@@ -121,13 +121,13 @@ describe('hooks', function () {
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
-    it('should return empty array for invalid searches', function () {
+    it.only('should return empty array for invalid searches', function () {
       let res;
       let invalidId = 'ID';
       return chai.request(app).get(`/api/notes/${invalidId}`)
         .then(_res => {
           res = _res;
-          expect(res).to.have.status(200);
+          expect(res).to.have.status(400);
           expect(res).to.be.json;
           expect(res.body).to.be.an('object');
         });
@@ -170,6 +170,18 @@ describe('hooks', function () {
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
+    it('should return 400 error', function () {
+      const newItem = {
+        'content': 'sgsegsdhrhaharghehaeharhehaehah'
+      };
+
+      return chai.request(app).post('/api/notes')
+        .send(newItem)
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.equal('Missing title in request body');
+        });
+    });
   });
 
   // // ADD PUT
@@ -199,8 +211,25 @@ describe('hooks', function () {
           expect(res.body.id).to.equal(updateData.id);
           expect(res.body.title).to.equal(updateData.title);
           expect(res.body.content).to.equal(updateData.content);
-          // expect(new Date(res.body.createdAt)).to.eql(updateData.createdAt);
-          // expect(new Date(res.body.updatedAt)).to.eql(updateData.updatedAt);
+        });
+    });
+    it('should return 400 error', function () {
+      const updateData = {
+        'content': 'Lharehearhehaeheaheahehahah.'
+      };
+      return Note.findOne()
+        .then(_data => {
+          updateData.id = _data.id;
+          // console.log(_data.id);
+          // error may occur because added /api/notes
+          return chai.request(app)
+            .put(`/api/notes/${_data.id}`)
+            .send(updateData);
+        })
+        .then(res => {
+          // console.log(res);
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.equal('Missing title in request body');
         });
     });
   });
