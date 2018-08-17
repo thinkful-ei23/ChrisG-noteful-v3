@@ -9,14 +9,16 @@ const app = require('../server');
 // get testURI
 const { TEST_MONGODB_URI } = require('../config');
 const Note = require('../models/note');
+const Folder = require('../models/folder');
 // seed db
 const seedNotes = require('../db/seed/notes');
+const seedFolders = require('../db/seed/folders');
 
 const expect = chai.expect;
 chai.use(chaiHttp);
 
 
-describe('hooks', function () {
+describe('Node noteful notes test', function () {
   // connect to the database before all tests then drop db
   before(function () {
     return mongoose.connect(TEST_MONGODB_URI)
@@ -24,7 +26,11 @@ describe('hooks', function () {
   });
   // seed data runs before each test
   beforeEach(function () {
-    return Note.insertMany(seedNotes);
+    return Promise.all([
+      Folder.insertMany(seedFolders),
+      Folder.createIndexes(),
+      Note.insertMany(seedNotes)
+    ]);
   });
   // drop database after each test
   afterEach(function () {
@@ -72,7 +78,7 @@ describe('hooks', function () {
           expect(res).to.be.json;
           expect(res.body).to.be.an('array');
           expect(res.body[0]).to.be.an('object');
-          expect(res.body[0]).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body[0]).to.have.keys('id', 'title', 'content', 'folderId','createdAt', 'updatedAt');
 
           // 3) then compare database results to API response
           expect(res.body[0].id).to.equal(data.id);
@@ -95,7 +101,22 @@ describe('hooks', function () {
           expect(res.body).to.have.length(0);
         });
     });
-
+    it('should return an empty array for an incorrect query', function () {
+      const searchTerm = 'NotValid';
+      // const re = new RegExp(searchTerm, 'i');
+      const dbPromise = Note.find({
+        title: { $regex: searchTerm, $options: 'i' }
+        // $or: [{ 'title': re }, { 'content': re }]
+      });
+      const apiPromise = chai.request(app).get(`/api/notes?searchTerm=${searchTerm}`);
+      return Promise.all([dbPromise, apiPromise])
+        .then(([data, res]) => {
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('array');
+          expect(res.body).to.have.length(data.length);
+        });
+    });
   });
   // erroor for ID is null
   describe('GET /api/notes/:id', function() {
@@ -111,7 +132,7 @@ describe('hooks', function () {
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'folderId','createdAt', 'updatedAt');
 
           // 3) then compare database results to API response
           expect(res.body.id).to.equal(data.id);
@@ -130,6 +151,23 @@ describe('hooks', function () {
           expect(res).to.have.status(400);
           expect(res).to.be.json;
           expect(res.body).to.be.an('object');
+        });
+    });
+    it('should return correct search results for a folderId query', function () {
+      let data;
+      return Folder.findOne()
+        .then((_data) => {
+          data = _data;
+          return Promise.all([
+            Note.find({ folderId: data.id }),
+            chai.request(app).get(`/api/notes?folderId=${data.id}`)
+          ]);
+        })
+        .then(([data, res]) => {
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('array');
+          expect(res.body).to.have.length(data.length);
         });
     });
     
@@ -170,7 +208,7 @@ describe('hooks', function () {
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
-    it('should return 400 error', function () {
+    it('should return 400 error when missing title', function () {
       const newItem = {
         'content': 'sgsegsdhrhaharghehaeharhehaehah'
       };
@@ -205,7 +243,7 @@ describe('hooks', function () {
           expect(res).to.have.status(201);
           expect(res).to.be.json;
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'folderId','createdAt', 'updatedAt');
 
           // 3) then compare database results to API response
           expect(res.body.id).to.equal(updateData.id);
@@ -213,7 +251,7 @@ describe('hooks', function () {
           expect(res.body.content).to.equal(updateData.content);
         });
     });
-    it('should return 400 error', function () {
+    it('should return 400 error missing title', function () {
       const updateData = {
         'content': 'Lharehearhehaeheaheahehahah.'
       };

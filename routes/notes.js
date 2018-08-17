@@ -8,19 +8,24 @@ const router = express.Router();
 
 /* ========== GET/READ ALL ITEMS ========== */
 router.get('/', (req, res, next) => {
-  const { searchTerm } = req.query;
-  let titleFilter = {};
-  let contentFilter = {};
-  if (searchTerm) {
-    titleFilter.title = { $regex: searchTerm, $options: 'i' };
-    contentFilter.content = { $regex: searchTerm, $options: 'i' };
+  const { searchTerm , folderId} = req.query;
+  let filter = {};
+  if(folderId) {
+    filter.folderId = folderId;
   }
-  Note.find({ $or: [titleFilter, contentFilter] }).sort({ updatedAt: 'desc' })
+  if (searchTerm) {
+    filter = {$or: [
+      {title: { $regex: searchTerm, $options: 'i' }},
+      {content: { $regex: searchTerm, $options: 'i' }},
+    ]
+    };
+  }
+  Note.find(filter).sort({ updatedAt: 'desc' })
     .then(results => {
       res.json(results);
     })
     .catch(err => {
-      res.json(err);
+      next(err);
     });
 
 });
@@ -40,7 +45,7 @@ router.get('/:id', (req, res, next) => {
       res.json(results);
     })
     .catch(err => {
-      res.json(err);
+      next(err);
     });
 
 });
@@ -49,11 +54,17 @@ router.get('/:id', (req, res, next) => {
 router.post('/', (req, res, next) => {
   const newItem = {
     title: req.body.title,
-    content: req.body.content
+    content: req.body.content,
+    folderId: req.body.folderId
   };
 
   if (!newItem.title) {
     const err = new Error('Missing title in request body');
+    err.status = 400;
+    return next(err);
+  }
+  if (newItem.folderId && !mongoose.Types.ObjectId.isValid(newItem.folderId)) {
+    const err = new Error('The `folderId` is not valid');
     err.status = 400;
     return next(err);
   }
@@ -62,7 +73,7 @@ router.post('/', (req, res, next) => {
     .then(results => res.location(`${req.originalUrl}/${results.id}`).status(201).json(results))
     .catch(err => {
       console.error(`ERROR: ${err.message}`);
-      res.json(err); 
+      next(err); 
     });
 
 });
@@ -74,18 +85,35 @@ router.put('/:id', (req, res, next) => {
   const UpdateItem = {
     title: req.body.title,
     content: req.body.content,
+    folderId: req.body.folderId
   };
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
   if (!UpdateItem.title) {
     const err = new Error('Missing title in request body');
     err.status = 400;
     return next(err);
   }
+  if (UpdateItem.folderId && !mongoose.Types.ObjectId.isValid(UpdateItem.folderId)) {
+    const err = new Error('The `folderId` is not valid');
+    err.status = 400;
+    return next(err);
+  }
 
   Note.findByIdAndUpdate(id, UpdateItem, { new: true, upsert: true })
-    .then(results => res.status(201).json(results))
+    .then(results => {
+      if (results) {
+        res.status(201).json(results);
+      } else {
+        next();
+      }
+    })
     .catch(err => {
       console.error(`ERROR: ${err.message}`);
-      res.json(err);
+      next(err);
     });
 
 
@@ -94,13 +122,17 @@ router.put('/:id', (req, res, next) => {
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
 router.delete('/:id', (req, res, next) => {
   const id = req.params.id;
-
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
   Note.findByIdAndRemove(id)
     .then(() => {
       res.status(204).end();
     })
     .catch(err => {
-      res.json(err);
+      next(err);
     });
 });
 
