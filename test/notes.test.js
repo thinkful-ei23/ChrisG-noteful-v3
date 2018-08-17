@@ -10,9 +10,11 @@ const app = require('../server');
 const { TEST_MONGODB_URI } = require('../config');
 const Note = require('../models/note');
 const Folder = require('../models/folder');
+const Tag = require('../models/tag');
 // seed db
 const seedNotes = require('../db/seed/notes');
 const seedFolders = require('../db/seed/folders');
+const seedTags = require('../db/seed/tags');
 
 const expect = chai.expect;
 chai.use(chaiHttp);
@@ -27,8 +29,10 @@ describe('Node noteful notes test', function () {
   // seed data runs before each test
   beforeEach(function () {
     return Promise.all([
-      Folder.insertMany(seedFolders),
+      Folder.insertMany(seedTags),
       Folder.createIndexes(),
+      Tag.insertMany(seedFolders),
+      Tag.createIndexes(),
       Note.insertMany(seedNotes)
     ]);
   });
@@ -78,7 +82,7 @@ describe('Node noteful notes test', function () {
           expect(res).to.be.json;
           expect(res.body).to.be.an('array');
           expect(res.body[0]).to.be.an('object');
-          expect(res.body[0]).to.have.keys('id', 'title', 'content', 'folderId','createdAt', 'updatedAt');
+          expect(res.body[0]).to.have.keys('id', 'title', 'content', 'folderId', 'tags', 'createdAt', 'updatedAt');
 
           // 3) then compare database results to API response
           expect(res.body[0].id).to.equal(data.id);
@@ -132,7 +136,7 @@ describe('Node noteful notes test', function () {
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'folderId','createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'folderId', 'tags','createdAt', 'updatedAt');
 
           // 3) then compare database results to API response
           expect(res.body.id).to.equal(data.id);
@@ -191,7 +195,7 @@ describe('Node noteful notes test', function () {
           expect(res).to.have.header('location');
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'tags', 'createdAt', 'updatedAt');
           // mongo should have created id on insertion
           expect(res.body.id).to.not.be.null;
           expect(res.body.title).to.equal(newItem.title);
@@ -243,7 +247,7 @@ describe('Node noteful notes test', function () {
           expect(res).to.have.status(201);
           expect(res).to.be.json;
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'folderId','createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'folderId', 'tags','createdAt', 'updatedAt');
 
           // 3) then compare database results to API response
           expect(res.body.id).to.equal(updateData.id);

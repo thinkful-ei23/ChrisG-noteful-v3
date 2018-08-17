@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const noteSchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: String,
-  folderId: {type: mongoose.Schema.Types.ObjectId, ref: 'Folder'}
+  folderId: {type: mongoose.Schema.Types.ObjectId, ref: 'Folder'},
+  tags: [{type: mongoose.Schema.Types.ObjectId, ref: 'Tag'}]
 });
 
 // Add `createdAt` and `updatedAt` fields
@@ -22,13 +23,5 @@ noteSchema.set('toObject', {
     delete ret._id; // delete _id 
   }});
 
-
-// noteSchema.methods.serialize = function() {
-//   return {
-//     id: this._id,
-//     title: this.title,
-//     content: this.content
-//   };
-// };
 
 module.exports = mongoose.model('Note', noteSchema);
