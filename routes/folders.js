@@ -49,6 +49,7 @@ router.post('/', (req, res, next) => {
   Folder.create(newFolder)
     .then(result => res.location(`${req.originalUrl}/${result.id}`).status(201).json(result))
     .catch(err => {
+      console.log(err);
       if (err.code === 11000) {
         err = new Error('The folder name already exists');
         err.status = 400;
