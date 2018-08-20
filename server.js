@@ -10,6 +10,7 @@ const notesRouter = require('./routes/notes');
 // added features
 const foldersRouter = require('./routes/folders');
 const tagsRouter = require('./routes/tags');
+const userRouter = require('./routes/users');
 
 // Create an Express application
 const app = express();
@@ -32,6 +33,8 @@ app.use('/api/notes', notesRouter);
 app.use('/api/folders', foldersRouter);
 // Mount tags
 app.use('/api/tags', tagsRouter);
+// Mount users
+app.use('/api/users', userRouter);
 
 // Custom 404 Not Found route handler
 app.use((req, res, next) => {
