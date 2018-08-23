@@ -12,9 +12,12 @@ router.post('/', (req, res, next) => {
   const missingField = requiredFields.find(field => !(field in req.body));
 
   if (missingField) {
-    const err = new Error(`Missing ${missingField} in request body`);
-    err.status = 422;
-    return next(err);
+    return res.status(422).json({
+      code: 422,
+      reason: 'ValidationError',
+      message: `Missing ${missingField}`,
+      location: `${missingField}`
+    });
   }
   const stringFields = ['username', 'password', 'firstName', 'lastName'];
   const nonStringField = stringFields.find(
@@ -26,7 +29,7 @@ router.post('/', (req, res, next) => {
       code: 422,
       reason: 'ValidationError',
       message: 'Incorrect field type: expected string',
-      location: nonStringField
+      location: `${nonStringField}`
     });
   }
 
@@ -40,7 +43,7 @@ router.post('/', (req, res, next) => {
       code: 422,
       reason: 'ValidationError',
       message: 'Cannot start or end with whitespace',
-      location: nonTrimmedField
+      location: `${nonTrimmedField}`
     });
   }
 
@@ -86,7 +89,7 @@ router.post('/', (req, res, next) => {
     })
     .then(hash => {
       const newUser = {
-        fullname,
+        fullname: fullname.trim(),
         username,
         password: hash
       };

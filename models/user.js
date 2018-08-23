@@ -8,8 +8,6 @@ const userSchema = new mongoose.Schema({
   password: { type: String, require: true}
 });
 
-userSchema.set('timestamps', true);
-
 userSchema.set('toObject', {
   virtuals: true,
   versionKey: false, 

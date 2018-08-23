@@ -54,7 +54,7 @@ function validateTags(tags, userId) {
       }
     });
   }
-  return Tag.count({ _id: tags, userId })
+  return Tag.find( {$and: [{ _id: { $in: tags }, userId }]})
     .then(count => {
       if (count === 0) {
         const err = new Error('The `folderId` is not valid');

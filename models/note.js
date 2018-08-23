@@ -10,7 +10,7 @@ const noteSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 });
 
-noteSchema.index({ name: 1, userId: 1 }, { unique: true });
+// noteSchema.index({ name: 1, userId: 1 });
 
 // Add `createdAt` and `updatedAt` fields
 noteSchema.set('timestamps', true);
