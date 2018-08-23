@@ -12,7 +12,7 @@ const store = (function () {
       searchTerm: '',
     },
     currentUser: {},
-    authToken: '';
+    authToken: '',
   };
 
 }());
