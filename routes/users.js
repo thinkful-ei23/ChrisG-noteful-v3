@@ -1,10 +1,8 @@
 'use strict';
 
 const express = require('express');
-const mongoose = require('mongoose');
-
-
 const User = require('../models/user');
+const passport = require('passport');
 
 const router = express.Router();
 
@@ -86,11 +84,11 @@ router.post('/', (req, res, next) => {
       }
       return User.hashPassword(password);
     })
-    .then(digest => {
+    .then(hash => {
       const newUser = {
+        fullname,
         username,
-        password: digest,
-        fullname
+        password: hash
       };
       return User.create(newUser);
     })

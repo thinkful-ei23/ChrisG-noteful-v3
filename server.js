@@ -15,6 +15,7 @@ const foldersRouter = require('./routes/folders');
 const tagsRouter = require('./routes/tags');
 const userRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
+const jwtStrategy = require('./passport/jwt');
 
 // Create an Express application
 const app = express();
@@ -23,8 +24,11 @@ const app = express();
 app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'common', {
   skip: () => process.env.NODE_ENV === 'test'
 }));
+
 // configure passport to use the strategy
 passport.use(localStrategy);
+// configure PP to utilize jwtStrategy
+passport.use(jwtStrategy);
 
 // Create a static webserver
 app.use(express.static('public'));

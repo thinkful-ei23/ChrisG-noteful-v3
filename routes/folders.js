@@ -4,12 +4,16 @@ const express = require('express');
 const Folder = require('../models/folder');
 const Note = require('../models/note');
 const mongoose = require('mongoose');
+const passport = require('passport');
 
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
+// Protects endpoints
+router.use('/', passport.authenticate('jwt', { session: false, failWithError: true }));
 
-  Folder.find()
+router.get('/', (req, res, next) => {
+  const userId = req.user.id;
+  Folder.find({ userId })
     .sort({name: 'asc'})
     .then(function(result) {
       res.json(result);
@@ -19,13 +23,14 @@ router.get('/', (req, res, next) => {
 
 router.get('/:id', (req, res, next) => {
   const id = req.params.id;
+  const userId = req.user.id;
   if (!mongoose.Types.ObjectId.isValid(id)) {
     const err = new Error('The `id` is not valid');
     err.status = 400;
     return next(err);
   }
 
-  Folder.findById(id)
+  Folder.findOne({ _id: id, userId })
     .then(result => {
       if(result) {
         res.json(result);
@@ -40,12 +45,13 @@ router.get('/:id', (req, res, next) => {
 
 router.post('/', (req, res, next) => {
   const { name } = req.body;
+  const userId = req.user.id;
   if (!name) {
     const err = new Error('Missing name in request body');
     err.status = 400;
     return next(err);
   }
-  const newFolder = { name };
+  const newFolder = { name, userId };
   Folder.create(newFolder)
     .then(result => res.location(`${req.originalUrl}/${result.id}`).status(201).json(result))
     .catch(err => {
@@ -60,6 +66,7 @@ router.post('/', (req, res, next) => {
 router.put('/:id', (req, res, next) => {
   const { id } = req.params;
   const { name } = req.body;
+  const userId = req.user.id;
   
   if (!name) {
     const err = new Error('Missing name in request body');
@@ -71,9 +78,9 @@ router.put('/:id', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-  const updateItem = { name };
+  const updateItem = { name, userId };
   
-  Folder.findByIdAndUpdate(id, updateItem, {new:true})
+  Folder.findOneAndUpdate({ _id: id, userId }, updateItem, {new:true})
     .then(result => {
       if (result) {
         res.status(201).json(result);
@@ -92,6 +99,7 @@ router.put('/:id', (req, res, next) => {
 
 router.delete('/:id', (req, res, next) => {
   const { id } = req.params;
+  const userId = req.user.id;
 
   /***** Never trust users - validate input *****/
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -101,7 +109,7 @@ router.delete('/:id', (req, res, next) => {
   }
 
   // ON DELETE SET NULL equivalent
-  const folderRemovePromise = Folder.findByIdAndRemove(id);
+  const folderRemovePromise = Folder.findOneAndRemove({_id: id, userId});
   // ON DELETE CASCADE equivalent
   // const noteRemovePromise = Note.deleteMany({ folderId: id });
 

@@ -4,11 +4,16 @@ const express = require('express');
 const Note = require('../models/note');
 const Tag = require('../models/tag');
 const mongoose = require('mongoose');
+const passport = require('passport');
 
 const router = express.Router();
 
+// Protects endpoints
+router.use('/', passport.authenticate('jwt', { session: false, failWithError: true }));
+
 router.get('/', (req, res, next) => {
-  Tag.find()
+  const userId = req.user.id;
+  Tag.find({ userId })
     .sort({name: 'asc'})
     .then(result => {
       res.json(result);
@@ -18,6 +23,7 @@ router.get('/', (req, res, next) => {
 
 router.get('/:id', (req, res, next) => {
   const { id } = req.params;
+  const userId = req.user.id;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     const err = new Error('The `id` is not valid');
@@ -25,7 +31,7 @@ router.get('/:id', (req, res, next) => {
     return next(err);
   }
 
-  Tag.findById(id)
+  Tag.findOne({ _id: id, userId })
     .then(result => {
       if (result) {
         res.json(result);
@@ -38,12 +44,14 @@ router.get('/:id', (req, res, next) => {
 
 router.post('/', (req, res, next) => {
   const { name } = req.body;
+  const userId = req.user.id;
+
   if (!name) {
     const err = new Error('Missing name in request body');
     err.status = 400;
     return next(err);
   }
-  const newTag = { name };
+  const newTag = { name, userId };
   Tag.create(newTag)
     .then(result => res.location(`${req.originalUrl}/${result.id}`).status(201).json(result))
     .catch(err => {
@@ -58,6 +66,7 @@ router.post('/', (req, res, next) => {
 router.put('/:id', (req, res, next) => {
   const { id } = req.params;
   const { name } = req.body;
+  const userId = req.user.id;
 
   if (!name) {
     const err = new Error('Missing name in request body');
@@ -69,9 +78,9 @@ router.put('/:id', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-  const updateItem = { name };
+  const updateItem = { name, userId };
 
-  Tag.findByIdAndUpdate(id, updateItem, { new: true })
+  Tag.findOneAndUpdate({ _id: id, userId }, updateItem, { new: true })
     .then(result => {
       if (result) {
         res.status(201).json(result);
@@ -90,6 +99,7 @@ router.put('/:id', (req, res, next) => {
 
 router.delete('/:id', (req, res, next) => {
   const { id } = req.params;
+  const userId = req.user.id;
 
   /***** Never trust users - validate input *****/
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -99,7 +109,7 @@ router.delete('/:id', (req, res, next) => {
   }
 
   // ON DELETE SET NULL equivalent
-  const TagRemovePromise = Tag.findByIdAndRemove(id);
+  const TagRemovePromise = Tag.findOneAndRemove({ _id: id, userId });
   // ON DELETE CASCADE equivalent
   // const noteRemovePromise = Note.deleteMany({ TagId: id });
 
